@@ -1,0 +1,138 @@
+---
+title: "pca_exercises"
+author: "CG"
+date: "04/06/2019"
+output: html_document
+---
+
+############## Exercise ################
+### different dataset about wine. If interested more information can be found here (but not necessary for the excercise): https://archive.ics.uci.edu/ml/datasets/Wine
+### These data are the results of a chemical analysis of wines grown in the same region in Italy but derived from three different cultivars (column 1)
+
+```{r}
+# Load the data and create column names
+wine <- read.table("http://archive.ics.uci.edu/ml/machine-learning-databases/wine/wine.data", sep=",")
+# Name the variables
+colnames(wine) <- c("Cvs","Alcohol","Malic acid","Ash","Alcalinity of ash", "Magnesium", "Total phenols", "Flavanoids", "Nonflavanoid phenols", "Proanthocyanins", "Color intensity", "Hue", "OD280/OD315 of diluted wines", "Proline")
+# The first column corresponds to the classes
+wineClasses <- factor(wine$Cvs)
+wine
+wineClasses
+```
+
+```{r}
+
+### 1.1 Visualise the data - ideally look at all or some of the data. The pairs() function is very useful in this respect (do not try to use it on more than 20 or so variables though)
+str(wine)
+pairs(wine[1:5]) #correlation
+plot(wine[1:5])
+dim(wine)
+
+?pairs()
+
+#pairs(data[ , 1:3],
+     # col = "red",                                         # Change color
+     # pch = 18,                                            # Change shape of points
+     # labels = c("var1", "var2", "var3"),                  # Change labels of diagonal
+     # main = "This is a nice pairs plot in R")             # Add a main title
+
+### 1.2 Is there a difference between variables with respect to different cultivars? Try colouring with respect to it.
+
+pairs(wine[ , 1:5],
+      col = c("red", "cornflowerblue", "purple")[wine$Cvs],   # Change color by group
+      pch = c(8, 18, 1)[wine$Cvs],                            # Change points by group
+      labels = c("1", "2", "3"),
+      main = "Data coloured by vultivarvarbibles")
+# the above comes from the link below: very useful!
+# https://statistical-programming.com/r-pairs-plot-example/
+
+### 2 Perform PCA on the data excluding the cultivars column (column 1) and colour the plot with respect to cultivars
+
+#by hand PCA method
+wine_for_PCA = wine[2:13]
+wine_for_PCA
+
+
+keep_wine <- rowSums(wine_for_PCA) > 0 #filters rows that don't have any expression in 
+head(keep_wine)
+wine_for_PCA_filtered <- wine_for_PCA[keep_wine, ] 
+head(wine_for_PCA_filtered)
+
+# we don't need to log the data, in gene espression analysis we do it because we have very high and very low expression of certain genes. but if the data is normally ditributed than we don't need to log transform it. 
+
+class(wine_for_PCA_filtered)
+
+hist(rowSums(wine_for_PCA_filtered))
+
+logcounts <- log(counts_df_filtered[,1]+1,10) #doing it with first sample first
+d <- density(logcounts) #doing a density pot of that sample first
+plot(d,xlim=c(1,8),main="",ylim=c(0,.45),xlab="Raw read counts per gene (log10)", ylab="Density")
+
+for (s in 2:ncol(counts_df_filtered)){   #this for loop is doing the same as above but for each sample
+  logcounts <- log(counts_df_filtered[,s],10) 
+  d <- density(logcounts)
+  lines(d)
+}
+
+counts_df_filtered_log = log(counts_df_filtered+1)
+hist(as.numeric(rowSums(counts_df_filtered_log)),
+     breaks = 100, main = "log Expression sum per gene",
+     xlab = "Sum expression")
+abline(v=median(as.numeric(rowSums(counts_df_filtered_log))), col="red")
+
+?prcomp()
+
+# do we need to trasnpose the data or not?
+#do we want to see how the wines are clustering or how the feaatures are clustering 
+
+# prcomp PCA method
+pca_wine = prcomp(wine_for_PCA, center=TRUE, scale=FALSE) ## stats package 
+beigenvalues = bpc$sdev^2 # eigenvalues
+beigenvectors = bpc$rotation # eigenvectors
+par(mfrow=c(2,1))
+plot(beigenvalues/sum(beigenvalues) * 100,xlab="PC",ylab="% Variance explained") 
+plot(cumsum(beigenvalues)/sum(beigenvalues) * 100, xlab="PC",ylab="Cumulative % Variance explained")
+
+### 2.1 Which classess does PC1 separate? Which classes does PC2 separate? What about further PCs?
+### 2.2 What proportion of the variance does PC1 explain? 
+### 2.3 How many PCs do you need to explain 80% of the variance?
+```
+
+### 3 Check the effect of outiers on PCA
+wineOutlier <- wine
+wineOutlier[10,] <- wineOutlier[10,]*10 # change the 10th obs. into an extreme one by multiplying its profile by 10
+### 3.1 Perform PCA on this data
+### 3.2 Plot and check proportion of variance explained
+### 3.3 What would you do if you had a case like this in your data? Make a decision and perform analysis, comparing to initial results from question2
+
+
+### 4. Going back to the initial full wine dataset, look at the effect of Proline on Alcohol in the context of the different cultivars, i.e.
+### 4.1 Perform linear regression of Alcohol on Proline and look at the summary for the effect of Proline. Check out the lm command for more information here, but notice the p-values (last column) corresponding to the row that says Proline
+summary(lm(Alcohol~Proline, data=wine))
+### 4.2 Perform linear regression of Alcohol on Proline, when accounting for cultivars (Cvs) and look at the summary for the effect of Proline. How has this changed?  the lm function can take Alcohol~ var1+var2+var3 (and so on), where vari are names from the dataset specified in data
+### 4.3 Now suppose you had no information on Cvs, but had the original PCs from Question 2. What happens when you account for some of those in the model (say 2) instead of the now unknown Cvs?
+
+
+### 5 Suppose you were initially given only data on the first two cultivars
+wine12 = wine[which(wine[,1] %in% c(1,2)),]
+### 5.1 Perform PCA on this subset of the data
+### 5.2 Project the data from the 3rd class onto the PCA from the 12classes. Might be tricky as I haven't given you the command for this, but have a think about how you would do this and get back to me if you're stuck
+wine3 = wine[which(wine[,1] %in% c(3)),]
+### 5.3 compare results to your original PCA. How do they differ and why?
+
+
+
+### 6 Perform tSNE on the full dataset (without classes) and investigate if classes are well separated
+### 6.1 Use small perplexity (3 say)
+### 6.2 Use larger perplexity (10 say). Do you see any differences in the plots?
+### 6.3 Investigate if any of the variables have an effect tsne separation 
+### 6.4 Compare the results from tSNE to those from PCA 
+
+### 7. k means clustering
+### 7.1 perform k-means clustering with 3 clusters. Check separation between Alcohol and Proline for example
+### 7.2 What k would you choose in general?
+
+
+### 8. Perform hierarchical clustering
+### 8.1 Split into 3 clusters and check what they correspond to in terms of the wineClasses (the label option in plotting the hlust object is useful here). Which two clusters appeat closer to each other? Does this agree with PCA analyses?
+### 8.2 Check the consistency of the clustering (might take a while to run)

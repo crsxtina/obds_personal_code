@@ -1,0 +1,36 @@
+---
+title: "exercises_day2"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+############## Exercise ################
+
+
+#Download the two files from the links below
+#https://www.dropbox.com/s/au4a4snlhxa39fq/GTEx_subset_1000_subset.txt?dl=0
+#https://www.dropbox.com/s/m6hhef9nv0vwka5/GTEx_subset_1000_subset_info.txt?dl=0
+
+#File 1 contains a read count matrix (rows=genes, cols=samples)
+#File 2 includes information on the tissues of each sample
+
+#1. Perform PCA. How many PCs do you think you should keep for follow up analysis?
+#2. Use the tissue information for plotting to see which tissues cluster together
+#3. Investigate which tissues (if any) the first few principal components are separating
+#4. Find the top genes correlated to PC1/PC2 and plot the Expression values per tissue
+#5. Compare PCA to tSNE. Unlike the previous example, these should look very different now!
+#6. How would you cluster the data? How many clusters would you choose?
+#7. optional - according to each cluster, if familiar with differential expression analysis, find the most highly differentially expressed genes and for each such gene colour tSNE, PCA plots with that gene's expression values 
+
+```{r}
+system("head /Users/cristina/Cristina/DPhil/CGAT/OBDS_R_week/GTEx_subset_1000_subset.txt")
+system("head /Users/cristina/Cristina/DPhil/CGAT/OBDS_R_week/GTEx_subset_1000_subset_info.txt")
+
+
+subset = read.csv("/Users/cristina/Cristina/DPhil/CGAT/OBDS_R_week/GTEx_subset_1000_subset.txt", header=T, row.names = 1, sep=' ')
+subset_info = read.csv("/Users/cristina/Cristina/DPhil/CGAT/OBDS_R_week/GTEx_subset_1000_subset_info.txt", sep='\t')
+
+```
